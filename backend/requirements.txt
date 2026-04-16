@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+python-multipart
+pypdf
+langchain
+ollama
+python-dotenv
+pytest
+pytest-asyncio
+httpx
