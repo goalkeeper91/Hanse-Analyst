@@ -5,7 +5,7 @@ def test_get_summary_with_text():
     text = "Dies ist ein Testdokument.\nEs hat zwei Zeilen."
     summary = PDFService.get_summary(text)
     assert "2 Zeilen" in summary
-    assert "7 Wörter" in summary
+    assert "8 Wörter" in summary
 
 def test_get_summary_empty():
     summary = PDFService.get_summary("")
