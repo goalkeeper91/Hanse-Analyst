@@ -20,10 +20,12 @@ class Document(Base):
     content = Column(Text)
     doc_type = Column(String) # e.g., "Rechnung", "Vertrag"
     summary = Column(Text)
+    verification_status = Column(String) # "valid", "invalid", "n/a"
+    verification_message = Column(String)
     upload_date = Column(DateTime, default=get_utc_now)
 
 async def init_db():
     print("Attempting to initialize database...")
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-    print("Database initialization complete (or attempted).")
+    print("Database initialization complete.")

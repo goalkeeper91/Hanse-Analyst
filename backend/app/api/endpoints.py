@@ -28,14 +28,16 @@ async def upload_documents(files: List[UploadFile] = File(...), db: AsyncSession
             content = await file.read()
             text = await pdf_service.extract_text(content)
             
-            # AI Classification & Summary
+            # AI Classification & Invoice Check
             ai_data = await ai_service.classify_and_summarize(text)
             
             doc = Document(
                 filename=file.filename,
                 content=text,
                 doc_type=ai_data.get("type", "Sonstiges"),
-                summary=ai_data.get("summary", "")
+                summary=ai_data.get("summary", ""),
+                verification_status=ai_data.get("verification_status", "n/a"),
+                verification_message=ai_data.get("verification_message", "")
             )
             db.add(doc)
             await db.commit()
@@ -45,7 +47,11 @@ async def upload_documents(files: List[UploadFile] = File(...), db: AsyncSession
                 "id": doc.id,
                 "filename": doc.filename,
                 "type": doc.doc_type,
-                "summary": doc.summary
+                "summary": doc.summary,
+                "verification": {
+                    "status": doc.verification_status,
+                    "message": doc.verification_message
+                }
             })
         except Exception as e:
             print(f"Fehler beim Verarbeiten von {file.filename}: {e}")

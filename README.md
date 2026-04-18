@@ -7,13 +7,14 @@ Das Tool ermöglicht es Benutzern, PDF-Dokumente hochzuladen, die anschließend 
 
 ## Hauptfunktionen
 - **Multi-PDF-Upload:** Gleichzeitiges Hochladen und Verarbeiten mehrerer Dokumente.
+- **Automatisierte Rechnungseingangskontrolle:** Abgleich von extrahierten Rechnungsdaten (Bestellnummer, Betrag) mit einem internen Bestellsystem (OrderService).
 - **KI-Klassifizierung:** Automatische Erkennung des Dokumenttyps (z.B. Rechnung, Vertrag) mittels lokaler KI.
 - **Splitscreen-Analyse:** Modernes Dashboard mit Dokumentenliste, Vorschau und interaktivem KI-Chat.
-- **SQLite-Persistenz:** Dauerhafte Speicherung der Dokumente und KI-Analysen in einer lokalen Datenbank.
+- **SQLite-Persistenz:** Dauerhafte Speicherung der Dokumente, KI-Analysen und Validierungsergebnisse.
 - **Lokale KI-Analyse:** Nutzung von Ollama (Llama 3) zur Inhaltsanalyse und Beantwortung von Fragen.
 - **Modernes UI:** Responsive React-Oberfläche mit Tailwind CSS und Lucide Icons.
 - **Clean Architecture:** Klare Trennung von API, Services, Models und Frontend-Komponenten.
-- **Test-First Ansatz:** Unit-Tests für Backend (Pytest) und Frontend (Vitest).
+- **Test-Driven Development (TDD):** Umfassende Unit-Tests für Backend (Pytest) und Frontend (Vitest).
 
 ## Datenschutz & Lokale KI (Fokus: Deutsche Unternehmen)
 Ein zentraler Aspekt dieses Projekts ist der **Schutz der Privatsphäre**. 
@@ -44,7 +45,7 @@ source venv/bin/activate  # Unter Windows: venv\Scripts\activate
 # Abhängigkeiten installieren (inkl. SQLAlchemy, aiosqlite, ollama)
 pip install -r requirements.txt
 
-# Server starten (App-Verzeichnis muss im Python-Pfad sein)
+# Server starten
 uvicorn app.main:app --reload
 ```
 Das Backend ist nun unter `http://localhost:8000` erreichbar. Die SQLite-Datenbank wird beim ersten Start automatisch initialisiert.
@@ -59,16 +60,17 @@ npm install
 # Entwicklungsserver starten
 npm run dev
 ```
-Das Frontend ist meist unter `http://localhost:5173` erreichbar.
 
 ---
 
-## Testing
+## Testing & Qualitätssicherung
+Dieses Projekt folgt strengen TDD-Prinzipien.
 
 ### Backend Tests (Pytest)
 ```bash
 cd backend
-pytest
+# Ausführen aller Tests inkl. OrderService Validierung
+python -m pytest
 ```
 
 ### Frontend Tests (Vitest)
