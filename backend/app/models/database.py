@@ -1,13 +1,16 @@
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker, declarative_base
 from sqlalchemy import Column, Integer, String, Text, DateTime
-from datetime import datetime
+from datetime import datetime, timezone
 
 DATABASE_URL = "sqlite+aiosqlite:///./hanse_analyst.db"
 
 engine = create_async_engine(DATABASE_URL, echo=True)
 AsyncSessionLocal = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 Base = declarative_base()
+
+def get_utc_now():
+    return datetime.now(timezone.utc)
 
 class Document(Base):
     __tablename__ = "documents"
@@ -17,7 +20,7 @@ class Document(Base):
     content = Column(Text)
     doc_type = Column(String) # e.g., "Rechnung", "Vertrag"
     summary = Column(Text)
-    upload_date = Column(DateTime, default=datetime.utcnow)
+    upload_date = Column(DateTime, default=get_utc_now)
 
 async def init_db():
     print("Attempting to initialize database...")
