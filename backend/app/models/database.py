@@ -2,8 +2,14 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker, declarative_base
 from sqlalchemy import Column, Integer, String, Text, DateTime
 from datetime import datetime, timezone
+import os
 
-DATABASE_URL = "sqlite+aiosqlite:///./hanse_analyst.db"
+# Base directory for the project
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+DEFAULT_DB_PATH = os.path.join(BASE_DIR, "hanse_analyst.db")
+
+# Allow overriding the DATABASE_URL via environment variable (useful for tests)
+DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite+aiosqlite:///{DEFAULT_DB_PATH}")
 
 engine = create_async_engine(DATABASE_URL, echo=True)
 AsyncSessionLocal = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
@@ -25,7 +31,8 @@ class Document(Base):
     upload_date = Column(DateTime, default=get_utc_now)
 
 async def init_db():
-    print("Attempting to initialize database...")
+    print(f"Initializing database at {DATABASE_URL}...")
     async with engine.begin() as conn:
+        # This will create tables if they don't exist
         await conn.run_sync(Base.metadata.create_all)
     print("Database initialization complete.")
