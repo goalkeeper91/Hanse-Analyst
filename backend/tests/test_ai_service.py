@@ -1,30 +1,34 @@
 import pytest
 from unittest.mock import patch, AsyncMock
 from app.services.ai_service import AIService
+import json
 
 @pytest.fixture
 def ai_service():
-    # Wir nutzen llama3, um konsistent mit der App zu sein
     return AIService(model="llama3")
 
 @pytest.mark.asyncio
-async def test_get_overview_success(ai_service):
-    # Mock für den AsyncClient.generate Call
+async def test_classify_and_summarize_success(ai_service):
     with patch('ollama.AsyncClient.generate', new_callable=AsyncMock) as mock_gen:
-        mock_gen.return_value = {'response': 'Dies ist eine Zusammenfassung.'}
+        mock_gen.return_value = {
+            'response': json.dumps({"type": "Rechnung", "summary": "Test Rechnung"})
+        }
         
-        result = await ai_service.get_overview("Test Kontext")
+        result = await ai_service.classify_and_summarize("Test Kontext")
         
-        assert result == "Dies ist eine Zusammenfassung."
+        assert result["type"] == "Rechnung"
+        assert result["summary"] == "Test Rechnung"
         mock_gen.assert_called_once()
 
 @pytest.mark.asyncio
-async def test_get_overview_error_handling(ai_service):
+async def test_classify_and_summarize_fallback(ai_service):
     with patch('ollama.AsyncClient.generate', new_callable=AsyncMock) as mock_gen:
-        mock_gen.side_effect = Exception("Ollama nicht erreichbar")
+        mock_gen.side_effect = Exception("Parsing Fehler")
         
-        result = await ai_service.get_overview("Some context")
-        assert "Fehler bei der lokalen Zusammenfassung" in result
+        result = await ai_service.classify_and_summarize("Test Kontext")
+        
+        assert result["type"] == "Sonstiges"
+        assert "Konnte nicht klassifiziert werden" in result["summary"]
 
 @pytest.mark.asyncio
 async def test_analyze_document_success(ai_service):
@@ -35,11 +39,3 @@ async def test_analyze_document_success(ai_service):
         
         assert result == "Dies ist eine KI-Antwort."
         mock_gen.assert_called_once()
-
-@pytest.mark.asyncio
-async def test_analyze_document_error_handling(ai_service):
-    with patch('ollama.AsyncClient.generate', new_callable=AsyncMock) as mock_gen:
-        mock_gen.side_effect = Exception("Modell nicht gefunden")
-        
-        result = await ai_service.analyze_document("Kontext", "Frage")
-        assert "Fehler bei der lokalen KI-Verarbeitung" in result

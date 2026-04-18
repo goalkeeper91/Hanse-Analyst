@@ -1,45 +1,84 @@
-import { render, screen, fireEvent } from '@testing-library/react';
-import { expect, test, vi } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { expect, test, vi, beforeEach } from 'vitest';
 import App from './App';
 import axios from 'axios';
 
 // Mock axios
 vi.mock('axios');
 
-test('renders header with application title', () => {
-  render(<App />);
-  const titleElement = screen.getByText(/Hanse-Analyst/i);
-  expect(titleElement).toBeInTheDocument();
+const mockDocs = [
+  { id: 1, filename: 'rechnung.pdf', doc_type: 'Rechnung', summary: 'Eine Testrechnung', content: 'Inhalt 1' },
+];
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  // Standard-Mock für das Laden der Dokumente beim Start
+  axios.get.mockResolvedValue({ data: mockDocs });
 });
 
-test('renders privacy indicator', () => {
+test('renders header with application title', async () => {
   render(<App />);
-  const privacyElement = screen.getByText(/100% Datenschutz/i);
-  expect(privacyElement).toBeInTheDocument();
+  const title = await screen.findByText(/Hanse-Analyst/i);
+  expect(title).toBeInTheDocument();
 });
 
-test('shows upload section', () => {
+test('loads and displays documents in sidebar', async () => {
   render(<App />);
-  const uploadTitle = screen.getByText(/Dokument hochladen/i);
-  expect(uploadTitle).toBeInTheDocument();
+  const docItem = await screen.findByText('rechnung.pdf');
+  expect(docItem).toBeInTheDocument();
 });
 
-test('updates question input value', () => {
+test('selects a document and shows preview', async () => {
   render(<App />);
-  const input = screen.getByPlaceholderText(/Stellen Sie eine Frage.../i);
-  fireEvent.change(input, { target: { value: 'Was ist das Thema?' } });
-  expect(input.value).toBe('Was ist das Thema?');
+
+  // Warten bis die Sidebar geladen ist
+  const docItem = await screen.findByText('rechnung.pdf');
+  fireEvent.click(docItem);
+
+  // Prüfen ob die Vorschau-Sektion erscheint
+  const previewHeader = await screen.findByText(/Dokumenten-Vorschau/i);
+  expect(previewHeader).toBeInTheDocument();
+
+  // Da der Text zweimal vorkommt (Sidebar & Vorschau), nutzen wir getAllByText
+  const summaries = await screen.findAllByText('Eine Testrechnung');
+  expect(summaries.length).toBeGreaterThanOrEqual(1);
 });
 
-test('calls axios on question submit', async () => {
+test('sends a question and displays answer', async () => {
   axios.post.mockResolvedValue({ data: { answer: 'KI Test Antwort' } });
 
   render(<App />);
-  const input = screen.getByPlaceholderText(/Stellen Sie eine Frage.../i);
-  const button = screen.getByText(/Senden/i);
 
-  fireEvent.change(input, { target: { value: 'Was ist das Thema?' } });
-  fireEvent.click(button);
+  // 1. Dokument auswählen
+  const docItem = await screen.findByText('rechnung.pdf');
+  fireEvent.click(docItem);
 
-  expect(axios.post).toHaveBeenCalled();
+  // 2. Frage stellen
+  const input = await screen.findByPlaceholderText(/Frage stellen.../i);
+  fireEvent.change(input, { target: { value: 'Was ist das?' } });
+
+  const sendButton = screen.getByLabelText('Senden');
+  fireEvent.click(sendButton);
+
+  // 3. Auf Antwort warten (Asynchron)
+  const answer = await screen.findByText('KI Test Antwort');
+  expect(answer).toBeInTheDocument();
+});
+
+test('triggers upload on file change', async () => {
+  axios.post.mockResolvedValue({ data: [] });
+
+  render(<App />);
+
+  const fileInput = screen.getByLabelText('Dokument-Upload');
+  const file = new File(['test'], 'test.pdf', { type: 'application/pdf' });
+
+  fireEvent.change(fileInput, { target: { files: [file] } });
+
+  await waitFor(() => {
+    expect(axios.post).toHaveBeenCalledWith(
+      expect.stringContaining('/upload'),
+      expect.any(FormData)
+    );
+  });
 });

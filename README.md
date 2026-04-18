@@ -6,11 +6,14 @@ Hanse-Analyst ist eine moderne Fullstack-Demo-Anwendung zur lokalen Analyse von 
 Das Tool ermöglicht es Benutzern, PDF-Dokumente hochzuladen, die anschließend vollständig lokal analysiert werden. Die Anwendung bietet eine automatische Zusammenfassung des Inhalts und erlaubt interaktive Fragen zum Dokument, ohne dass Daten die lokale Infrastruktur verlassen.
 
 ## Hauptfunktionen
-- **PDF-Verarbeitung:** Automatisierte Textextraktion aus PDF-Dateien.
-- **Lokale KI-Analyse:** Nutzung von Ollama (z.B. Llama 3) zur Inhaltsanalyse und Beantwortung von Fragen.
-- **Modernes UI:** Eine responsive React-Oberfläche, entwickelt mit Vite und Tailwind CSS.
-- **Clean Architecture:** Klare Trennung von API-Endpunkten, Services und Frontend-Komponenten.
-- **Test-First Ansatz:** Umfassende Unit-Tests für Backend (Pytest) und Frontend (Vitest).
+- **Multi-PDF-Upload:** Gleichzeitiges Hochladen und Verarbeiten mehrerer Dokumente.
+- **KI-Klassifizierung:** Automatische Erkennung des Dokumenttyps (z.B. Rechnung, Vertrag) mittels lokaler KI.
+- **Splitscreen-Analyse:** Modernes Dashboard mit Dokumentenliste, Vorschau und interaktivem KI-Chat.
+- **SQLite-Persistenz:** Dauerhafte Speicherung der Dokumente und KI-Analysen in einer lokalen Datenbank.
+- **Lokale KI-Analyse:** Nutzung von Ollama (Llama 3) zur Inhaltsanalyse und Beantwortung von Fragen.
+- **Modernes UI:** Responsive React-Oberfläche mit Tailwind CSS und Lucide Icons.
+- **Clean Architecture:** Klare Trennung von API, Services, Models und Frontend-Komponenten.
+- **Test-First Ansatz:** Unit-Tests für Backend (Pytest) und Frontend (Vitest).
 
 ## Datenschutz & Lokale KI (Fokus: Deutsche Unternehmen)
 Ein zentraler Aspekt dieses Projekts ist der **Schutz der Privatsphäre**. 
@@ -38,13 +41,13 @@ cd backend
 python -m venv venv
 source venv/bin/activate  # Unter Windows: venv\Scripts\activate
 
-# Abhängigkeiten installieren
+# Abhängigkeiten installieren (inkl. SQLAlchemy, aiosqlite, ollama)
 pip install -r requirements.txt
 
-# Server starten
-python main.py
+# Server starten (App-Verzeichnis muss im Python-Pfad sein)
+uvicorn app.main:app --reload
 ```
-Das Backend ist nun unter `http://localhost:8000` erreichbar.
+Das Backend ist nun unter `http://localhost:8000` erreichbar. Die SQLite-Datenbank wird beim ersten Start automatisch initialisiert.
 
 ### 2. Frontend Setup (React + Vite)
 Öffnen Sie ein neues Terminal und navigieren Sie in den `frontend`-Ordner:
@@ -56,7 +59,7 @@ npm install
 # Entwicklungsserver starten
 npm run dev
 ```
-Das Frontend ist nun unter der in der Konsole angegebenen Adresse (meist `http://localhost:5173`) erreichbar.
+Das Frontend ist meist unter `http://localhost:5173` erreichbar.
 
 ---
 

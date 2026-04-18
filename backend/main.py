@@ -1,18 +1,16 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.endpoints import router as api_router
-from app.models.database import init_db, Document # Import Document to register with Base
+from app.models.database import init_db
 from contextlib import asynccontextmanager
 import uvicorn
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Initialisierung der Datenbank beim Start
-    print("Lifespan startup: Initializing database...")
     await init_db()
     yield
     # Aufräumarbeiten hier (falls nötig)
-    print("Lifespan shutdown.")
 
 app = FastAPI(
     title="Hanse-Analyst API",
